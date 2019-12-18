@@ -48,6 +48,38 @@ type ReqMessages struct {
 	Messages []ReqMessage
 }
 
+type CallbackData struct {
+	Results []struct {
+		BulkID       string `json:"bulkId"`
+		CallbackData string `json:"callbackData"`
+		DoneAt       string `json:"doneAt"`
+		Error        struct {
+			Description string `json:"description"`
+			GroupID     int    `json:"groupId"`
+			GroupName   string `json:"groupName"`
+			ID          int    `json:"id"`
+			Name        string `json:"name"`
+			Permanent   bool   `json:"permanent"`
+		} `json:"error"`
+		MccMnc    string `json:"mccMnc"`
+		MessageID string `json:"messageId"`
+		Price     struct {
+			Currency        string  `json:"currency"`
+			PricePerMessage float64 `json:"pricePerMessage"`
+		} `json:"price"`
+		SentAt   string `json:"sentAt"`
+		SmsCount int    `json:"smsCount"`
+		Status   struct {
+			Description string `json:"description"`
+			GroupID     int    `json:"groupId"`
+			GroupName   string `json:"groupName"`
+			ID          int    `json:"id"`
+			Name        string `json:"name"`
+		} `json:"status"`
+		To string `json:"to"`
+	} `json:"results"`
+}
+
 func SendSMS(from string, to []Destination, text string) ResponseBody {
 	url := fmt.Sprintf("https://%s%s", baseUrl, SMS_ENDPOINT)
 	payload, err := json.Marshal(ReqMessages{Messages: []ReqMessage{
