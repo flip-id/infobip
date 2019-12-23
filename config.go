@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	SMS_ENDPOINT = "/sms/2/text/advanced"
+	SmsEndpoint = "/sms/2/text/advanced"
 )
 
 var (

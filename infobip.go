@@ -7,10 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
-
-	"github.com/flip-id/infobip/pkg/infobip/database"
-	"github.com/flip-id/infobip/pkg/infobip/models"
-	"github.com/t-tiger/gorm-bulk-insert"
 )
 
 type Message struct {
@@ -81,7 +77,7 @@ type CallbackData struct {
 }
 
 func SendSMS(from string, to []Destination, text string) ResponseBody {
-	url := fmt.Sprintf("https://%s%s", baseUrl, SMS_ENDPOINT)
+	url := fmt.Sprintf("https://%s%s", baseUrl, SmsEndpoint)
 	payload, err := json.Marshal(ReqMessages{Messages: []ReqMessage{
 		{from, to, text, true, "application/json"},
 	}})
@@ -122,37 +118,5 @@ func SendSMS(from string, to []Destination, text string) ResponseBody {
 		panic(err)
 	}
 
-	logToDB(resBody)
-
 	return resBody
-}
-
-func logToDB(r ResponseBody) {
-	db, _ := database.Connect("root", "root", "infobip", "localhost")
-	var statusLogs []interface{}
-
-	for _, m := range r.Messages {
-		statusLogs = append(statusLogs, models.StatusLog{
-			BulkId:      r.BulkId,
-			MessageId:   m.MessageId,
-			PhoneNumber: m.To,
-			StatusCode:  m.Status.Name,
-		})
-	}
-
-	err := gormbulk.BulkInsert(db, statusLogs, 100)
-
-	if err != nil {
-		panic(err)
-	}
-}
-
-// Update status log status
-func UpdateStatus(messageId, newStatus string) {
-	db, _ := database.Connect("root", "root", "infobip", "localhost")
-	var statusLog = models.StatusLog{}
-
-	db.First(&statusLog, "message_id = ?", messageId)
-
-	db.Model(&statusLog).Update("status_code", newStatus)
 }
