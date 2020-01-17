@@ -3,10 +3,13 @@ package infobip
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type Message struct {
@@ -76,23 +79,26 @@ type CallbackData struct {
 	} `json:"results"`
 }
 
-func SendSMS(from string, to []Destination, text string) ResponseBody {
+func SendSMS(from string, to []Destination, text string) (ResponseBody, error) {
 	url := fmt.Sprintf("https://%s%s", baseUrl, SmsEndpoint)
 	payload, err := json.Marshal(ReqMessages{Messages: []ReqMessage{
 		{from, to, text, true, "application/json"},
 	}})
 
 	if err != nil {
-		panic(err)
+		log.Error(err)
+		return ResponseBody{}, err
 	}
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer([]byte(payload)))
-	req.Header.Set("Authorization", fmt.Sprintf("App %s", apiKey))
-	req.Header.Set("Content-Type", "application/json")
 
 	if err != nil {
-		panic(err)
+		log.Error(err)
+		return ResponseBody{}, err
 	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("App %s", apiKey))
+	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{
 		Timeout: time.Duration(15 * time.Second),
@@ -100,7 +106,13 @@ func SendSMS(from string, to []Destination, text string) ResponseBody {
 	res, err := client.Do(req)
 
 	if err != nil {
-		panic(err)
+		log.Error(err)
+		return ResponseBody{}, err
+	}
+
+	if res.StatusCode >= 400 {
+		log.Error(res)
+		return ResponseBody{}, errors.New("failed to send SMS")
 	}
 
 	defer res.Body.Close()
@@ -109,14 +121,16 @@ func SendSMS(from string, to []Destination, text string) ResponseBody {
 	resBody := ResponseBody{}
 
 	if err != nil {
-		panic(err)
+		log.Error(res)
+		return ResponseBody{}, err
 	}
 
 	err = json.Unmarshal(body, &resBody)
 
 	if err != nil {
-		panic(err)
+		log.Error(res)
+		return ResponseBody{}, err
 	}
 
-	return resBody
+	return resBody, nil
 }
