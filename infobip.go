@@ -30,21 +30,21 @@ type ResponseBody struct {
 }
 
 type Destination struct {
-	To string
+	To string `json:"to"`
 	// MessageId string
 }
 
 type ReqMessage struct {
-	From               string
-	Destinations       []Destination
-	Text               string
-	IntermediateReport bool
-	NotifyContentType  string
+	From               string `json:"from"`
+	Destinations       []Destination `json:"destinations"`
+	Text               string `json:"text"`
+	IntermediateReport bool `json:"intermediateReport"`
+	NotifyContentType  string `json:"notifyContentType"`
 }
 
 type ReqMessages struct {
 	// BulkId string
-	Messages []ReqMessage
+	Messages []ReqMessage `json:"messages"`
 }
 
 type CallbackData struct {
