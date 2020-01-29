@@ -35,11 +35,12 @@ type Destination struct {
 }
 
 type ReqMessage struct {
-	From               string `json:"from"`
+	From               string        `json:"from"`
 	Destinations       []Destination `json:"destinations"`
-	Text               string `json:"text"`
-	IntermediateReport bool `json:"intermediateReport"`
-	NotifyContentType  string `json:"notifyContentType"`
+	Text               string        `json:"text"`
+	IntermediateReport bool          `json:"intermediateReport"`
+	NotifyContentType  string        `json:"notifyContentType"`
+	NotifyUrl          string        `json:"notifyUrl"`
 }
 
 type ReqMessages struct {
@@ -80,9 +81,16 @@ type CallbackData struct {
 }
 
 func SendSMS(from string, to []Destination, text string) (ResponseBody, error) {
-	url := fmt.Sprintf("https://%s%s", baseUrl, SmsEndpoint)
+	url := fmt.Sprintf("%s%s", baseUrl, SmsEndpoint)
 	payload, err := json.Marshal(ReqMessages{Messages: []ReqMessage{
-		{from, to, text, true, "application/json"},
+		{
+			From:               from,
+			Destinations:       to,
+			Text:               text,
+			IntermediateReport: true,
+			NotifyContentType:  "application/json",
+			NotifyUrl:          notifyUrl,
+		},
 	}})
 
 	if err != nil {
