@@ -109,7 +109,7 @@ func SendSMS(from string, to []Destination, text string) (ResponseBody, error) {
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{
-		Timeout: time.Duration(15 * time.Second),
+		Timeout: 15 * time.Second,
 	}
 	res, err := client.Do(req)
 
