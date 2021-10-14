@@ -12,6 +12,19 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const SMS_ENDPOINT = "/sms/2/text/advanced"
+const CONNECTION_TIME_OUT = 15
+
+type Config struct {
+	BaseUrl   string
+	ApiKey    string
+	NotifyUrl string
+}
+
+type Sender struct{
+	Config Config
+}
+
 type Message struct {
 	To        string
 	MessageId string
@@ -48,6 +61,12 @@ type ReqMessages struct {
 	Messages []ReqMessage `json:"messages"`
 }
 
+func New(config Config) *Sender{
+	return &Sender{
+		Config: config,
+	}
+}
+
 type CallbackData struct {
 	Results []struct {
 		BulkID       string `json:"bulkId"`
@@ -80,8 +99,8 @@ type CallbackData struct {
 	} `json:"results"`
 }
 
-func SendSMS(from string, to []Destination, text string) (ResponseBody, error) {
-	url := fmt.Sprintf("%s%s", baseUrl, SmsEndpoint)
+func (s *Sender) SendSMS(from string, to []Destination, text string) (ResponseBody, error) {
+	url := fmt.Sprintf("%s%s", s.Config.BaseUrl, SMS_ENDPOINT)
 	payload, err := json.Marshal(ReqMessages{Messages: []ReqMessage{
 		{
 			From:               from,
@@ -89,7 +108,7 @@ func SendSMS(from string, to []Destination, text string) (ResponseBody, error) {
 			Text:               text,
 			IntermediateReport: true,
 			NotifyContentType:  "application/json",
-			NotifyUrl:          notifyUrl,
+			NotifyUrl:          s.Config.NotifyUrl,
 		},
 	}})
 
@@ -105,7 +124,7 @@ func SendSMS(from string, to []Destination, text string) (ResponseBody, error) {
 		return ResponseBody{}, err
 	}
 
-	req.Header.Set("Authorization", fmt.Sprintf("App %s", apiKey))
+	req.Header.Set("Authorization", fmt.Sprintf("App %s", s.Config.ApiKey))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{
